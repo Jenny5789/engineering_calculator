@@ -20,7 +20,7 @@ CASIO 공학용계산기를 참고하여 UI를 설계하였으며, 다양한 수
 
 | 괄호 오류 | 수식 오류 |
 |-----------|-----------|
-| ![괄호오류](images/screenshot_error1.png) | ![수식오류](images/screenshot_error2.png) |
+| ![괄호오류](images/screenshot_error1.png) | ![괄호오류](images/screenshot_error2.png) |
 
 ---
 
