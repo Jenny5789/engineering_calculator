@@ -1,162 +1,97 @@
-# 🧮 공학용 계산기
-> Engineering Calculator built using Python & Flet
+# 공학용 계산기
 
-![Python](https://img.shields.io/badge/Python-3.x-blue) ![Flet](https://img.shields.io/badge/Flet-0.80+-green)
+Python과 Flet으로 만든 공학용 계산기. CASIO 공학용 계산기의 UI를 참고해 설계했고, 입력한 수식을 전처리해 삼각, 로그, 거듭제곱 등 함수를 계산.
 
----
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flet](https://img.shields.io/badge/Flet-0.80+-02569B?style=for-the-badge)
 
-## 📌 소개
+## 기술 스택
 
-Python과 Flet 프레임워크를 사용하여 만든 공학용 계산기입니다.  
-CASIO 공학용계산기를 참고하여 UI를 설계하였으며, 다양한 수학 함수를 지원합니다.
+| 구분 | 기술 | 용도 |
+|---|---|---|
+| 언어 | Python 3 | 전체 코드 |
+| 표준 라이브러리 | math, re, sys | 수학 함수, 수식 전처리, 종료 |
+| 외부 라이브러리 | flet | UI |
 
----
+## 구현 역량
 
-## 📷 실행 화면
+관련 이론은 [파이썬 기초 역량 정리](https://github.com/Jenny5789/python/tree/main/study_archive) 참조.
 
-| 시작 화면 | 계산 결과 |
-|-----------|-----------|
-| ![시작](images/screenshot.png) | ![결과](images/screenshot_result.png) |
+| 역량 | 구현 내용 | 코드 | 이론 |
+|---|---|---|---|
+| 수식 계산 | 수식 전처리 후 허용 함수만 넘긴 eval 평가 | [핵심 코드](#핵심-코드) | [함수와 lambda](https://github.com/Jenny5789/python/blob/main/study_archive/theory/08_functions.md)<br>[자료형(dict)](https://github.com/Jenny5789/python/blob/main/study_archive/theory/03_data_types.md) |
+| 예외 처리 | 괄호 균형 검사, 오류 유형별 메시지 | [핵심 코드](#핵심-코드) | [예외 처리](https://github.com/Jenny5789/python/blob/main/study_archive/theory/13_exceptions.md) |
+| 수식 편집 | 커서 위치 기준 문자열 슬라이싱으로 삽입, 삭제 | [engineering_calculator.py](engineering_calculator.py) | [줄 편집기 insert, delete](https://github.com/Jenny5789/python/blob/main/study_archive/data_structures/02_line_editor.py) |
+| 상태 관리 | SHIFT, hyp 상태에 따른 버튼 라벨 전환, 계산 기록, 메모리 | [engineering_calculator.py](engineering_calculator.py) | [자료형(list, dict)](https://github.com/Jenny5789/python/blob/main/study_archive/theory/03_data_types.md) |
 
-| 괄호 오류 | 괄호 오류 |
-|-----------|-----------|
-| ![괄호오류](images/screenshot_error1.png) | ![괄호오류](images/screenshot_error2.png) |
+## 핵심 코드
 
----
+[engineering_calculator.py](engineering_calculator.py)
 
-## ✨ 주요 기능
+```python
+# 허용 함수만 담은 딕셔너리 (일부)
+SAFE_FUNCTIONS = {
+    'sin':  lambda x: math.sin(math.radians(x)),   # 각도(degree) 입력
+    'log':  math.log10,
+    'sqrt': math.sqrt,
+    # ... 생략
+}
 
-- ➕ **사칙연산** — 덧셈, 뺄셈, 곱셈, 나눗셈
-- 🔢 **괄호 계산** — 복잡한 수식의 괄호 처리 및 오류 감지
-- 📐 **삼각함수** — sin, cos, tan / SHIFT 로 역삼각함수 (asin, acos, atan)
-- 🔄 **쌍곡선함수** — hyp 버튼으로 sinh, cosh, tanh 전환 / hyp + SHIFT 로 asinh, acosh, atanh
-- 📊 **로그함수** — log (상용로그), ln (자연로그)
-- 🔺 **거듭제곱** — x², x³, xⁿ, x⁻¹
-- 🔧 **기타 함수** — √ (루트), Abs (절댓값), % (퍼센트), π (파이 상수), e (자연상수)
-- ⌨️ **커서 이동** — `◄` `►` 로 수식 내 원하는 위치로 이동 후 수정 가능
-- 🕓 **계산 기록** — `▲` `▼` 로 이전 계산식 불러오기
-- 💾 **메모리** — M+ (저장), RCL (불러오기)
-- ⚠️ **오류 메시지** — 수식 오류, 괄호 오류, 0으로 나누기 등 원인 표시
+def preprocess(expr: str) -> str:
+    expr = expr.replace("^", "**")
+    expr = expr.replace("×", "*")
+    expr = re.sub(r'(\d+)!', r'factorial(\1)', expr)
+    # ... 생략
+    return expr
 
----
+def calculate(expr: str) -> str:
+    try:
+        bracket_error = check_brackets(expr)       # 괄호 검사 먼저
+        if bracket_error:
+            return bracket_error
 
-## 🚀 설치 및 실행
-
-### 요구사항
-- Python 3.x
-- Flet 0.80.0 이상
-
-### 설치
-```bash
-pip install flet
+        processed = preprocess(expr)
+        result = eval(processed, {"__builtins__": {}}, SAFE_FUNCTIONS)
+        if isinstance(result, float) and result.is_integer():
+            return str(int(result))
+        return str(round(result, 10))
+    except ZeroDivisionError:
+        return "Error: 0으로 나눌 수 없음"
+    except SyntaxError:
+        return "Error: 수식 오류"
+    # ... 생략
 ```
 
-### 실행
-```bash
+- 화면용 기호를 파이썬 문법으로 치환한 뒤 계산
+- eval의 내장 함수를 비우고 허용한 함수만 전달해 실행 범위 제한
+- 오류 유형별 메시지를 반환해 화면에 원인 표시
+
+## 주요 기능
+
+| 기능 | 설명 |
+|---|---|
+| 연산 | 사칙연산, 괄호, 거듭제곱, 루트, 로그, Abs, %, π |
+| 삼각, 쌍곡선함수 | SHIFT로 역삼각함수, hyp로 쌍곡선함수 전환 |
+| 수식 편집 | 방향키로 커서 이동 후 중간 수정, DEL, AC |
+| 기록과 메모리 | 위, 아래 방향키로 이전 계산식, M+, RCL, Ans |
+| 오류 메시지 | 괄호 오류, 0으로 나눌 수 없음 등 원인 표시 |
+
+<img src="images/screenshot_result.png" width="40%" alt="계산 결과">
+<img src="images/screenshot_error1.png" width="40%" alt="괄호 오류">
+
+<details>
+<summary>전체 화면 보기</summary>
+
+<img src="images/screenshot.png" width="400" alt="시작 화면">
+<img src="images/screenshot_error2.png" width="400" alt="괄호 오류 2">
+
+</details>
+
+## 실행 방법
+
+Python 3.x, Flet 0.80.0 이상.
+
+```
+pip install flet
 python engineering_calculator.py
 ```
-
----
-
-## 🎮 사용법
-
-### 기본 계산
-```
-2 + 3 = 5
-(3 + 2) × 4 = 20
-```
-
-### 삼각함수
-```
-sin(30) = 0.5
-cos(60) = 0.5
-tan(45) = 1
-```
-
-### SHIFT 기능 (역삼각함수)
-```
-SHIFT 누르기 → 버튼이 asin / acos / atan 으로 전환
-asin(0.5) = 30
-```
-
-### hyp 기능 (쌍곡선함수)
-```
-hyp 누르기 → 버튼이 sinh / cosh / tanh 으로 전환
-sinh(1) = 1.1752011936
-```
-
-### hyp + SHIFT (역쌍곡선함수)
-```
-hyp 누르기 → SHIFT 누르기 → 버튼이 asinh / acosh / atanh 으로 전환
-asinh(1) = 0.8813735870
-```
-
-### 로그
-```
-log(100) = 2
-ln(e) = 1
-```
-
-### 거듭제곱 / 루트
-```
-2 xⁿ 8 = 256   (2^8)
-√(16) = 4
-```
-
-### 퍼센트
-```
-50% = 0.5
-100 × 20% = 20
-```
-
-### 커서 이동 및 계산 기록
-```
-◀ ▶ — 수식 내 커서를 좌우로 이동하여 원하는 위치 수정 가능
-▲ ▼ — 이전/다음 계산식 불러오기
-```
-
-### 메모리
-```
-수식 입력 후 M+ → 결과 메모리 저장
-RCL → 저장된 값 불러오기
-```
-
-### Ans (이전 결과)
-```
-계산 후 Ans 버튼 → 이전 결과값 수식에 삽입
-예: 5 + 3 = 8 → Ans × 2 = 16
-```
-
-
-## 🗂️ 버튼 구성
-
-| 구분 | 버튼 |
-|------|------|
-| **방향키** | `◄` `▲` `▼` `►` `ON/OFF` |
-| **함수** | `SHIFT` `(` `)` `Abs` `xⁿ` `x²` `x³` `x⁻¹` `√` `(-)` `log` `ln` `%` `hyp` `RCL` `sin` `cos` `tan` `π` `M+` |
-| **숫자** | `7` `8` `9` `4` `5` `6` `1` `2` `3` `0` `.` `x10ˣ` `Ans` `=` |
-| **연산자** | `×` `÷` `+` `-` `DEL` `AC` |
-
----
-
-## 🔁 SHIFT / hyp 전환표
-
-| 모드 | 버튼 |
-|------|------|
-| **기본** | `sin` `cos` `tan` `√` `ln` `Abs` |
-| **SHIFT** | `asin` `acos` `atan` `x²` `e^` `n!` |
-| **hyp** | `sinh` `cosh` `tanh` |
-| **hyp + SHIFT** | `asinh` `acosh` `atanh` |
----
-
-## 🛠️ 기술 스택
-
-- **Language** — Python 3
-- **UI Framework** — Flet
-- **Math Library** — Python math 모듈
-
----
-
-## 👩‍💻 개발자
-
-- GitHub: [@Jenny5789](https://github.com/Jenny5789)
