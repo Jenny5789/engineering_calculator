@@ -1,32 +1,22 @@
 # 공학용 계산기
 
-Python과 Flet으로 만든 공학용 계산기. CASIO 공학용 계산기의 UI를 참고해 설계했고, 입력한 수식을 전처리해 삼각, 로그, 거듭제곱 등 함수를 계산.
+Python과 Flet으로 만든 공학용 계산기.
+
+CASIO 공학용 계산기의 UI를 참고해 설계했고, 입력한 수식을 전처리해 삼각, 로그, 거듭제곱 등 함수를 계산.
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Flet](https://img.shields.io/badge/Flet-0.80+-02569B?style=for-the-badge)
 
-## 기술 스택
-
-| 구분 | 기술 | 용도 |
-|---|---|---|
-| 언어 | Python 3 | 전체 코드 |
-| 표준 라이브러리 | math, re, sys | 수학 함수, 수식 전처리, 종료 |
-| 외부 라이브러리 | flet | UI |
-
-## 구현 역량
-
-관련 이론은 [파이썬 기초 역량 정리](https://github.com/Jenny5789/python/tree/main/study_archive) 참조.
-
-| 역량 | 구현 내용 | 코드 | 이론 |
-|---|---|---|---|
-| 수식 계산 | 수식 전처리 후 허용 함수만 넘긴 eval 평가 | [핵심 코드](#핵심-코드) | [함수와 lambda](https://github.com/Jenny5789/python/blob/main/study_archive/theory/08_functions.md)<br>[자료형(dict)](https://github.com/Jenny5789/python/blob/main/study_archive/theory/03_data_types.md) |
-| 예외 처리 | 괄호 균형 검사, 오류 유형별 메시지 | [핵심 코드](#핵심-코드) | [예외 처리](https://github.com/Jenny5789/python/blob/main/study_archive/theory/13_exceptions.md) |
-| 수식 편집 | 커서 위치 기준 문자열 슬라이싱으로 삽입, 삭제 | [engineering_calculator.py](engineering_calculator.py) | [줄 편집기 insert, delete](https://github.com/Jenny5789/python/blob/main/study_archive/data_structures/02_line_editor.py) |
-| 상태 관리 | SHIFT, hyp 상태에 따른 버튼 라벨 전환, 계산 기록, 메모리 | [engineering_calculator.py](engineering_calculator.py) | [자료형(list, dict)](https://github.com/Jenny5789/python/blob/main/study_archive/theory/03_data_types.md) |
+<img src="images/screenshot_result.png" width="220" alt="계산 결과">
 
 ## 핵심 코드
 
-[engineering_calculator.py](engineering_calculator.py)
+### 수식 계산
+
+[engineering_calculator.py](engineering_calculator.py) · [이론 정리: 함수와 lambda](https://github.com/Jenny5789/python/blob/main/study_archive/theory/08_functions.md) · [자료형(dict)](https://github.com/Jenny5789/python/blob/main/study_archive/theory/03_data_types.md)
+
+화면에 입력한 수식(예: `2^3×sin(30)`)은 파이썬이 바로 계산할 수 없음.<br>
+그래서 화면용 기호를 파이썬 문법으로 바꾸는 **전처리** 후, 허용한 함수만 쓸 수 있게 제한한 `eval`로 계산.
 
 ```python
 # 허용 함수만 담은 딕셔너리 (일부)
@@ -43,7 +33,16 @@ def preprocess(expr: str) -> str:
     expr = re.sub(r'(\d+)!', r'factorial(\1)', expr)
     # ... 생략
     return expr
+```
 
+- `^` → `**`, `×` → `*`, `5!` → `factorial(5)`처럼 화면 기호를 파이썬 문법으로 치환
+- 삼각함수는 각도(degree)로 입력받도록 lambda로 감싸서 등록
+
+### 오류 처리
+
+[engineering_calculator.py](engineering_calculator.py) · [이론 정리: 예외 처리](https://github.com/Jenny5789/python/blob/main/study_archive/theory/13_exceptions.md)
+
+```python
 def calculate(expr: str) -> str:
     try:
         bracket_error = check_brackets(expr)       # 괄호 검사 먼저
@@ -62,30 +61,42 @@ def calculate(expr: str) -> str:
     # ... 생략
 ```
 
-- 화면용 기호를 파이썬 문법으로 치환한 뒤 계산
-- eval의 내장 함수를 비우고 허용한 함수만 전달해 실행 범위 제한
-- 오류 유형별 메시지를 반환해 화면에 원인 표시
+- eval의 내장 함수를 비우고(`__builtins__: {}`) 허용한 함수만 전달해 실행 범위 제한
+- 계산 전에 괄호 짝부터 검사하고, 오류 종류마다 다른 메시지를 화면에 표시
 
 ## 주요 기능
 
+수식은 커서 위치 기준 문자열 슬라이싱으로 편집([줄 편집기](https://github.com/Jenny5789/python/blob/main/study_archive/data_structures/02_line_editor.py)), SHIFT·hyp 상태와 계산 기록은 [list, dict](https://github.com/Jenny5789/python/blob/main/study_archive/theory/03_data_types.md)로 관리.
+
 | 기능 | 설명 |
 |---|---|
-| 연산 | 사칙연산, 괄호, 거듭제곱, 루트, 로그, Abs, %, π |
+| 연산 | 사칙연산, 괄호, 거듭제곱, 루트, 상용로그(log), 자연로그(ln)<br>팩토리얼(n!), eˣ, x10ˣ, Abs, %, π |
 | 삼각, 쌍곡선함수 | SHIFT로 역삼각함수, hyp로 쌍곡선함수 전환 |
 | 수식 편집 | 방향키로 커서 이동 후 중간 수정, DEL, AC |
 | 기록과 메모리 | 위, 아래 방향키로 이전 계산식, M+, RCL, Ans |
-| 오류 메시지 | 괄호 오류, 0으로 나눌 수 없음 등 원인 표시 |
-
-<img src="images/screenshot_result.png" width="40%" alt="계산 결과">
-<img src="images/screenshot_error1.png" width="40%" alt="괄호 오류">
+| 오류 메시지 | 괄호 오류, 0으로 나눌 수 없음, 정의되지 않은 값(예: 음수의 루트), 수식 오류 |
 
 <details>
 <summary>전체 화면 보기</summary>
 
-<img src="images/screenshot.png" width="400" alt="시작 화면">
-<img src="images/screenshot_error2.png" width="400" alt="괄호 오류 2">
+| 시작 화면 | 괄호 오류 |
+|---|---|
+| <img src="images/screenshot.png" width="200" alt="시작 화면"> | <img src="images/screenshot_error1.png" width="200" alt="괄호 오류"> |
+
+| 괄호 오류 2 | |
+|---|---|
+| <img src="images/screenshot_error2.png" width="200" alt="괄호 오류 2"> | |
 
 </details>
+
+## 파일 구조
+
+```
+engineering_calculator/
+├── engineering_calculator.py   # 수식 전처리, 계산, UI 전체
+├── images/                     # README 스크린샷
+└── README.md
+```
 
 ## 실행 방법
 
