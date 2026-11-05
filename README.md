@@ -79,13 +79,9 @@ def calculate(expr: str) -> str:
 <details>
 <summary>전체 화면 보기</summary>
 
-| 시작 화면 | 괄호 오류 |
-|---|---|
-| <img src="images/screenshot.png" width="200" alt="시작 화면"> | <img src="images/screenshot_error1.png" width="200" alt="괄호 오류"> |
-
-| 괄호 오류 2 | |
-|---|---|
-| <img src="images/screenshot_error2.png" width="200" alt="괄호 오류 2"> | |
+| 시작 화면 | 괄호 오류 1 | 괄호 오류 2 |
+|---|---|---|
+| <img src="images/screenshot.png" width="200" alt="시작 화면"> | <img src="images/screenshot_error1.png" width="200" alt="괄호 오류 1"> | <img src="images/screenshot_error2.png" width="200" alt="괄호 오류 2"> |
 
 </details>
 
