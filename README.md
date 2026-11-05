@@ -1,4 +1,4 @@
-# 공학용 계산기 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<small><small><small>2026.06</small></small></small>
+# 공학용 계산기 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<sup><sub>2026.06</sub></sup>
 
 Python과 Flet으로 만든 공학용 계산기.
 
